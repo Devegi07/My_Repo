@@ -1,4 +1,4 @@
-name: SonarQube Scan
+name: SonarQube Scan (Windows)
 
 on:
   push:
@@ -11,22 +11,31 @@ jobs:
     runs-on: self-hosted
 
     steps:
+      # 1️⃣ Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12.10'
+      # 2️⃣ Download SonarScanner
+      - name: Download SonarScanner
+        shell: powershell
+        run: |
+          Invoke-WebRequest `
+            -Uri https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-windows.zip `
+            -OutFile sonar-scanner.zip
+          Expand-Archive sonar-scanner.zip -DestinationPath .
+          echo "$(pwd)\sonar-scanner-5.0.1.3006-windows\bin" >> $env:GITHUB_PATH
 
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v2
+      # 3️⃣ Run SonarScanner
+      - name: Run SonarScanner
+        shell: powershell
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
-        with:
-          args: >
-            -Dsonar.projectKey=my_repo
-            -Dsonar.projectName=My_Repo
-            -Dsonar.sources=.
-            -Dsonar.language=py
+        run: |
+          sonar-scanner `
+            -Dsonar.projectKey=my_repo `
+            -Dsonar.projectName=My_Repo `
+            -Dsonar.sources=. `
+            -Dsonar.language=py `
+            -Dsonar.host.url=$env:SONAR_HOST_URL `
+            -Dsonar.login=$env:SONAR_TOKEN
