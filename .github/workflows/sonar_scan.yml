@@ -1,39 +1,23 @@
-name: SonarQube Scan
+name: SonarQube Scan (Python)
 
 on:
   push:
     branches:
       - main
   pull_request:
-    # We will analyze PRs but won't decorate
     branches:
-      - '*'
+      - "*"
 
 jobs:
   sonar:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up JDK 11 (or required version)
-      uses: actions/setup-java@v3
-      with:
-        distribution: 'temurin'
-        java-version: '11'
-
-    - name: Cache SonarQube packages (optional)
-      uses: actions/cache@v3
-      with:
-        path: ~/.sonar/cache
-        key: ${{ runner.os }}-sonar
-
-    - name: SonarQube Scan
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: |
-        ./gradlew sonarqube \
-          -Dsonar.projectKey=your_project_key \
-          -Dsonar.host.url=https://your-sonarqube-server.com \
-          -Dsonar.login=$SONAR_TOKEN
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://localhost:9000/
